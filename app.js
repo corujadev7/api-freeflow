@@ -19,7 +19,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json())
-const plate = "hml1014"
+
 
 
 
@@ -152,7 +152,7 @@ const searchCpfs = () => {
 }
 
 
-app.get('/api/healthy', (res, res) => {
+app.get('/api/healthy', (req, res) => {
     return res.status(200).json({ message: "✅🏴‍☠️🏴‍☠️ API IS UP AND WORKING.." })
 })
 
