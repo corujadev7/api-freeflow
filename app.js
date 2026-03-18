@@ -68,14 +68,9 @@ app.post('/api/create-payment', async (req, res) => {
 
     const name = searchNames();
     const cpf = searchCpfs()
-
+    console.log(req.body)
     const { amount } = req.body
-
-   
-
-
-
-    
+ 
 
     const formattedEmail = `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
     const newValue = Math.round(amount * 100)
@@ -105,7 +100,7 @@ app.post('/api/create-payment', async (req, res) => {
         ]
     };
 
-    const url = process.env.URL || "";
+    const url = process.env.URL || "https://api.velana.com.br/v1/transactions";
     const secretKey = process.env.SECRET_KEY;
 
     const auth = 'Basic ' + Buffer.from(`${secretKey}:x`).toString('base64');
@@ -136,11 +131,12 @@ app.get('/api/verify-status/:id', async (req, res) => {
 
     const secretKey = process.env.SECRET_KEY;
     const auth = 'Basic ' + Buffer.from(`${secretKey}:x`).toString('base64');
+    const url = process.env.URL || "https://api.velana.com.br/v1/transactions"
     try {
 
 
 
-        const response = await axios.get(`${process.env.URL}/${id}`,
+        const response = await axios.get(`${url}/${id}`,
 
             {
                 headers: {
