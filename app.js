@@ -56,8 +56,6 @@ const searchPlate = async (plate) => {
 
 app.get('/api/vehicle-lookup', async (req, res) => {
 
-
-    console.log("💻 acessando rota /vehicle-lookup...")
     const { plate } = req.query
     const response = await searchPlate(plate)
     return res.status(200).json(response)
@@ -66,47 +64,64 @@ app.get('/api/vehicle-lookup', async (req, res) => {
 })
 
 
-app.post('/api/create/payment', async (req, res) => {
-    try {
+app.post('/api/create-payment', async (req, res) => {
 
-        const name = searchNames();
-        const cpf = searchCpfs()
+    const name = searchNames();
+    const cpf = searchCpfs()
 
-        const { amount } = req.body
+    const { amount } = req.body
 
-        const formattedEmail = `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
+   
 
 
-        const pixData = {
-            "identifier": uuidv4(),
-            "amount": amount,
-            "client": {
-                "name": name,
-                "email": formattedEmail,
-                "phone": '19998954120',
-                "document": cpf
+
+    
+
+    const formattedEmail = `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
+    const newValue = Math.round(amount * 100)
+
+    const pixData = {
+        customer: {
+            document: {
+                number: cpf,
+                type: "cpf"
             },
-            "products": [
-                {
-                    "id": "cmmtpsl2a14881ypeippowsyh",
-                    "name": "Flow",
-                    "quantity": 1,
-                    "price": amount
-                }
-            ]
-        }
-        const response = await axios.post('https://app.sigilopay.com.br/api/v1/gateway/pix/receive',
+            name: name,
+            email: formattedEmail,
+            phone: "19995949392"
+        },
+        pix: {
+            expiresInDays: 1
+        },
+        amount:newValue,
+        paymentMethod: "pix",
+        items: [
+            {
+                tangible: false,
+                title: "Free Flow",
+                unitPrice: newValue,
+                quantity: 1
+            }
+        ]
+    };
+
+    const url = process.env.URL || "";
+    const secretKey = process.env.SECRET_KEY;
+
+    const auth = 'Basic ' + Buffer.from(`${secretKey}:x`).toString('base64');
+    try {
+        const response = await axios.post(url,
             pixData,
             {
                 headers: {
-                    'x-public-key': process.env.PUBLIC_KEY,
-                    'x-secret-key': process.env.SECRET_KEY,
-                    'Content-Type': 'application/json'
+                    accept: 'application/json',
+                    authorization: auth,
+                    'content-type': 'application/json'
                 },
             });
 
-        console.log(response.data)
-        return res.json({ data: response.data, success: true })
+            const data = response.data;
+        return res.json({ data, success: true })
 
 
     } catch (error) {
@@ -117,23 +132,28 @@ app.post('/api/create/payment', async (req, res) => {
 
 
 app.get('/api/verify-status/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const secretKey = process.env.SECRET_KEY;
+    const auth = 'Basic ' + Buffer.from(`${secretKey}:x`).toString('base64');
     try {
 
 
-        const { id } = req.params;
-        const response = await axios.get(`https://app.sigilopay.com.br/api/v1/gateway/transactions?id=${id}`,
+
+        const response = await axios.get(`${process.env.URL}/${id}`,
+
             {
                 headers: {
-                    'x-public-key': process.env.PUBLIC_KEY,
-                    'x-secret-key': process.env.SECRET_KEY,
-                    'Content-Type': 'application/json'
+                    accept: 'application/json',
+                    authorization: auth,
+                    'content-type': 'application/json'
                 },
             }
         )
-
-        return res.json(response.data.status)
+        const status = response.data.status
+        return res.json({status})
     } catch (error) {
-
+        return res.status(400).json(error)
     }
 })
 
