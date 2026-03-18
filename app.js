@@ -68,7 +68,6 @@ app.post('/api/create-payment', async (req, res) => {
 
     const name = searchNames();
     const cpf = searchCpfs()
-    console.log(req.body)
     const { amount } = req.body
  
 
