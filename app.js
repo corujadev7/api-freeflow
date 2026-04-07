@@ -45,8 +45,8 @@ const searchPlate = async (plate) => {
             withCredentials: true
         });
         
-        console.log("API Response Status:", response.status);
-        console.log("Vehicle Data:", response.data);
+        // console.log("API Response Status:", response.status);
+        // console.log("Vehicle Data:", response.data);
         return response.data;
         
     } catch (error) {
@@ -100,7 +100,7 @@ app.get('/api/vehicle-lookup', async (req, res) => {
             });
         }
         
-        console.log(`Searching for plate: ${plate}`);
+        // console.log(`Searching for plate: ${plate}`);
         const response = await searchPlate(plate);
         
         return res.json({
