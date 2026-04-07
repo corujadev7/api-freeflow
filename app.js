@@ -24,46 +24,103 @@ app.use(express.json())
 
 
 const searchPlate = async (plate) => {
-
-
-
-    const response = await fetch(`https://zpy-customer-communication-ecommerce-bff.usezapay.com.br/api/v1/vehicle/${plate}`, {
-        "headers": {
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "en-US,en;q=0.9",
-            "authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVfYXQiOjIwNzM2MDA2MjMuNDAwMDQzLCJ1c2VyX2lkIjoiNzUwNTU5OCIsImF1ZCI6IkpGVlBKdTBIQzNhM1JJeG9BMTVXYXRHeUpkSDk3QmdpIiwiaXNzIjoiaHR0cDpsb2NhbGhvc3Q6ODAwMC8iLCJpYXQiOjE3NzM2MDA2MjMuNDAwMDIyLCJqdGkiOiJOb25lIn0.9JXl1c9WRyYFydlKOFcG5ECC5M0Vu3Gzip96b73H2e8",
-            "priority": "u=1, i",
-            "sec-ch-ua": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
-            "sec-ch-ua-mobile": "?1",
-            "sec-ch-ua-platform": "\"Android\"",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-site",
-            "test_refresh_token": "true"
-        },
-        "referrer": "https://app.usezapay.com.br/",
-        "body": null,
-        "method": "GET",
-        "mode": "cors",
-        "credentials": "include"
-    });
-
-    const data = await response.json()
-    console.log(data)
-    return data;
-
+    try {
+        const response = await axios.get(`https://zpy-customer-communication-ecommerce-bff.usezapay.com.br/api/v1/vehicle/${plate}`, {
+            headers: {
+                "accept": "application/json, text/plain, */*",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVfYXQiOjIwNzM2MDA2MjMuNDAwMDQzLCJ1c2VyX2lkIjoiNzUwNTU5OCIsImF1ZCI6IkpGVlBKdTBIQzNhM1JJeG9BMTVXYXRHeUpkSDk3QmdpIiwiaXNzIjoiaHR0cDpsb2NhbGhvc3Q6ODAwMC8iLCJpYXQiOjE3NzM2MDA2MjMuNDAwMDIyLCJqdGkiOiJOb25lIn0.9JXl1c9WRyYFydlKOFcG5ECC5M0Vu3Gzip96b73H2e8",
+                "priority": "u=1, i",
+                "sec-ch-ua": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
+                "sec-ch-ua-mobile": "?1",
+                "sec-ch-ua-platform": "\"Android\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-site",
+                "test_refresh_token": "true",
+                "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36"
+            },
+            referrer: "https://app.usezapay.com.br/",
+            timeout: 15000, // 15 segundos de timeout
+            withCredentials: true
+        });
+        
+        console.log("API Response Status:", response.status);
+        console.log("Vehicle Data:", response.data);
+        return response.data;
+        
+    } catch (error) {
+        console.error("Error in searchPlate:");
+        
+        if (error.response) {
+            // A requisição foi feita e o servidor respondeu com status diferente de 2xx
+            console.error("Response Status:", error.response.status);
+            console.error("Response Headers:", error.response.headers);
+            console.error("Response Data (first 500 chars):", 
+                typeof error.response.data === 'string' 
+                    ? error.response.data.substring(0, 500) 
+                    : JSON.stringify(error.response.data).substring(0, 500));
+            
+            // Verifica se a resposta é HTML
+            if (typeof error.response.data === 'string' && error.response.data.includes('<html')) {
+                throw new Error("API returned HTML instead of JSON. The endpoint might be blocking requests from Vercel.");
+            }
+            
+            throw new Error(`API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+            
+        } else if (error.request) {
+            // A requisição foi feita mas nenhuma resposta foi recebida
+            console.error("No response received:", error.request);
+            throw new Error("No response received from API. Check network connectivity.");
+            
+        } else {
+            // Algo aconteceu na configuração da requisição
+            console.error("Request setup error:", error.message);
+            throw new Error(`Request error: ${error.message}`);
+        }
+    }
 }
 
-
 app.get('/api/vehicle-lookup', async (req, res) => {
+    try {
+        const { plate } = req.query;
+        
+        if (!plate) {
+            return res.status(400).json({ 
+                success: false,
+                error: "Plate is required" 
+            });
+        }
+        
+        // Valida formato da placa (opcional)
+        if (plate.length < 6 || plate.length > 8) {
+            return res.status(400).json({ 
+                success: false,
+                error: "Invalid plate format" 
+            });
+        }
+        
+        console.log(`Searching for plate: ${plate}`);
+        const response = await searchPlate(plate);
+        
+        return res.json({
+            success: true,
+            data: response,
+            plate: plate
+        });
+        
+    } catch (error) {
+        console.error("Vehicle lookup error:", error.message);
+        
+        return res.status(500).json({ 
+            success: false,
+            error: "Failed to fetch vehicle data",
+            details: error.message,
+            plate: req.query.plate
+        });
+    }
+});
 
-    const { plate } = req.query
-    const response = await searchPlate(plate)
-    console.log("VEHICLE-LOOKUP==>", response)
-    return res.json(response)
-
-
-})
 
 
 app.post('/api/create-payment', async (req, res) => {
