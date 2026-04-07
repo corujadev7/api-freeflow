@@ -49,6 +49,7 @@ const searchPlate = async (plate) => {
     });
 
     const data = await response.json()
+    console.log(data)
     return data;
 
 }
@@ -58,7 +59,8 @@ app.get('/api/vehicle-lookup', async (req, res) => {
 
     const { plate } = req.query
     const response = await searchPlate(plate)
-    return res.status(200).json(response)
+    console.log("VEHICLE-LOOKUP==>", response)
+    return res.json(response)
 
 
 })
