@@ -29,7 +29,7 @@ const searchPlate = async (plate) => {
             headers: {
                 "accept": "application/json, text/plain, */*",
                 "accept-language": "en-US,en;q=0.9",
-                "authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVfYXQiOjIwNzM2MDA2MjMuNDAwMDQzLCJ1c2VyX2lkIjoiNzUwNTU5OCIsImF1ZCI6IkpGVlBKdTBIQzNhM1JJeG9BMTVXYXRHeUpkSDk3QmdpIiwiaXNzIjoiaHR0cDpsb2NhbGhvc3Q6ODAwMC8iLCJpYXQiOjE3NzM2MDA2MjMuNDAwMDIyLCJqdGkiOiJOb25lIn0.9JXl1c9WRyYFydlKOFcG5ECC5M0Vu3Gzip96b73H2e8",
+                "authorization": `${process.env.TOKEN}`,
                 "priority": "u=1, i",
                 "sec-ch-ua": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
                 "sec-ch-ua-mobile": "?1",
